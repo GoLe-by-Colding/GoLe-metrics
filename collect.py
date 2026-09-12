@@ -418,6 +418,24 @@ def main() -> None:
     (root / "reports").mkdir(exist_ok=True)
     dpath = root / "data" / f"{today}.json"
     rpath = root / "reports" / f"{today}.md"
+
+    # 같은 날 다시 돌릴 때, **데이터가 적은 실행이 많은 실행을 지우지 않게** 한다.
+    # CI 는 볼트(비공개)를 못 읽어 '빠져나간 결함'이 비는데, 그대로 쓰면 로컬에서
+    # 채워 둔 값이 사라진다. 비어 있는 칸만 이전 스냅샷에서 이어받는다.
+    if dpath.exists():
+        try:
+            prev = json.loads(dpath.read_text(encoding="utf-8"))
+        except (OSError, json.JSONDecodeError):
+            prev = None
+        if prev:
+            old_esc = prev.get("지표", {}).get("빠져나간결함", {})
+            new_esc = snap["지표"]["빠져나간결함"]
+            if new_esc.get("이슈_수") is None and old_esc.get("이슈_수") is not None:
+                snap["지표"]["빠져나간결함"] = {
+                    **old_esc,
+                    "출처": f"이번 실행은 볼트를 못 읽어 {prev.get('수집일')} 스냅샷 값을 이어받았다",
+                }
+                print("  빠져나간 결함: 이전 값을 이어받음 (볼트를 못 읽음)", file=sys.stderr)
     dpath.write_text(json.dumps(snap, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
     rpath.write_text(build_report(snap), encoding="utf-8")
     print(f"  → {dpath}\n  → {rpath}", file=sys.stderr)
