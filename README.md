@@ -35,6 +35,7 @@ GoLe 팀의 **전달 지표**를 주기적으로 찍어 쌓는 곳.
 python3 collect.py                 # 리포트와 JSON 스냅샷 생성
 python3 collect.py --by-author     # 개인별 분해 (화면에만, 저장하지 않는다)
 python3 collect.py --repo owner/name --pr-limit 300
+python3 collect.py --vault ../GoLe-obsidian   # 빠져나간 결함 집계 (기본으로 옆 디렉터리를 찾는다)
 ```
 
 의존성은 `python3`(표준 라이브러리만)과 로그인된 `gh` CLI 뿐이다.
@@ -56,6 +57,8 @@ python3 collect.py --repo owner/name --pr-limit 300
 | PR 크기 | 중앙값·p90·최대. 검토 가능성의 상한 |
 | 리뷰율 | GitHub 공식 리뷰가 달린 PR 비율 |
 | 봇 비중 | dependabot 이 흐름에서 차지하는 몫 |
+| 릴리스 빈도 | CalVer 태그 간격. main 푸시 + CI 성공 시 자동 생성된다 |
+| 빠져나간 결함 | 볼트 `07_이슈기록` 의 운영 이슈 / 릴리스 수 |
 
 각 지표의 한계는 `collect.py` 의 docstring 과 리포트 JSON 의 `주의` 필드에 적혀 있다.
 **숫자만 보고 결론 내리지 마라.**
@@ -68,18 +71,24 @@ python3 collect.py --repo owner/name --pr-limit 300
 
 ## 자동화
 
-`.github/workflows/weekly.yml` 이 매주 월요일 스냅샷을 찍어 커밋한다.
-**다른 저장소(GoLe)의 Actions 이력을 읽어야 해서 `GITHUB_TOKEN` 으로는 안 된다.**
-`repo` 스코프 PAT 을 `secrets.METRICS_TOKEN` 으로 넣어야 동작한다. 없으면 수동 실행한다.
+`.github/workflows/weekly.yml` 이 매주 월요일 09:00 KST 에 스냅샷을 찍어 커밋한다.
+
+**PAT 은 필요 없다.** GoLe 은 공개 저장소라 PR·Actions 이력을 `GITHUB_TOKEN` 으로 읽는다.
+
+예외가 하나 있다 — **빠져나간 결함**은 볼트(`GoLe-obsidian`, 비공개)를 읽어야 해서
+CI 에서는 비어 있다. 로컬 실행에서는 옆 디렉터리를 자동으로 찾아 채운다.
+CI 에서도 채우려면 볼트 읽기 권한이 있는 PAT 을 `secrets.METRICS_TOKEN` 에 넣어라.
+없으면 그 칸만 `—` 로 남고 나머지는 정상으로 돈다.
 
 ## 첫 스냅샷에서 나온 것
 
-2026-09-12, PR 80건 · CI 실행 300건 기준.
+2026-09-12, PR 80건 · CI 실행 300건 · 릴리스 1건 기준.
 
 - 재작업률 **41%** — 열에 넷이 7일 안에 같은 파일을 다시 고쳤다
 - 리뷰율 **0%** — GitHub 공식 리뷰가 달린 PR 이 한 건도 없다
 - 머지까지 중앙값 **0.2시간** (12분)
 - CI 첫 시도 통과율 **82%**, 브랜치당 CI 실행 중앙값 **2회**
+- 빠져나간 결함 **2건** (`07_이슈기록`) — 표본이 너무 작아 추세로 읽을 수 없다
 
 세 숫자가 한 이야기를 한다. **리뷰 없이 12분 만에 머지하고, 41% 를 다시 고친다.**
 검토 비용이 사라진 게 아니라 재작업으로 옮겨 간 것으로 보인다 — METR 연구에서
@@ -87,3 +96,6 @@ python3 collect.py --repo owner/name --pr-limit 300
 
 단, 이건 **한 시점의 스냅샷이고 인과가 아니다.** 같은 파일을 건드렸다고 반드시
 앞 PR 때문은 아니다. 몇 주 쌓아서 추세를 봐야 말할 수 있다.
+
+릴리스가 1건뿐이라 릴리스 관련 지표는 아직 의미가 없다. `release-tag.yml` 이
+2026-09-12 에 main 에 들어갔으니 다음 릴리스부터 쌓인다.

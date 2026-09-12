@@ -72,6 +72,11 @@ def fetch_ci_runs(repo: str, limit: int) -> list[dict]:
                    "--limit", str(limit), "--json", fields)
 
 
+def fetch_releases(repo: str, limit: int = 100) -> list[dict]:
+    return gh_json("release", "list", "--repo", repo,
+                   "--limit", str(limit), "--json", "tagName,publishedAt,isDraft")
+
+
 # ─────────────────────────────── 지표 ───────────────────────────────
 
 def metric_rework(prs: list[dict]) -> dict:
@@ -223,6 +228,72 @@ def metric_bot_share(prs: list[dict]) -> dict:
     }
 
 
+def metric_escaped_defects(vault: str | None, releases: list[dict]) -> dict:
+    """빠져나간 결함 — 운영에서 난 문제가 릴리스당 몇 건인가.
+
+    출처는 볼트의 `07_이슈기록/YYYY-MM-DD_제목.md` 다. **자동으로 완전히 셀 수 없다.**
+    이슈가 날 때마다 사람이 기록해야 숫자가 된다.
+
+    0 이 나왔다면 "결함이 없다"가 아니라 **"기록하지 않았다"** 일 수 있다.
+    그 구분은 이 스크립트가 못 한다 — 그래서 `기록_신뢰도` 를 같이 내보낸다.
+    """
+    live = [r for r in releases if not r.get("isDraft")]
+    base = {
+        "설명": "볼트 07_이슈기록 에 쌓인 운영 이슈 수 / 릴리스 수",
+        "릴리스_수": len(live),
+        "주의": "자동으로 셀 수 없다. 이슈가 날 때마다 기록해야 지표가 된다. "
+                "0 은 '결함이 없다'가 아니라 '기록하지 않았다'일 수 있다.",
+    }
+
+    if not vault:
+        return {**base, "이슈_수": None,
+                "기록_신뢰도": "볼트 경로를 못 찾음 — --vault 로 지정해라"}
+
+    d = os.path.join(vault, "07_이슈기록")
+    if not os.path.isdir(d):
+        return {**base, "이슈_수": None,
+                "기록_신뢰도": f"{d} 가 없다 — 볼트 경로나 폴더명을 확인해라"}
+
+    issues = []
+    for f in sorted(os.listdir(d)):
+        if not f.endswith(".md") or f == "README.md":
+            continue
+        m = re.match(r"(\d{4}-\d{2}-\d{2})[_ ]", f)
+        issues.append({"파일": f, "날짜": m.group(1) if m else None})
+
+    n_rel = len(live)
+    confidence = ("표본이 너무 작다 — 추세로 읽을 수 없다"
+                  if len(issues) < 5 else "누적 중")
+    return {
+        **base,
+        "이슈_수": len(issues),
+        "릴리스당_이슈": round(len(issues) / n_rel, 2) if n_rel else None,
+        "기록_신뢰도": confidence,
+        "목록": issues,
+    }
+
+
+def metric_release_cadence(releases: list[dict]) -> dict:
+    """릴리스 빈도. main 푸시 → 태그가 자동이므로 릴리스 수 = main 릴리스 횟수다."""
+    live = sorted((r for r in releases if not r.get("isDraft")),
+                  key=lambda r: r["publishedAt"] or "")
+    if len(live) < 2:
+        return {"설명": "릴리스 간격", "릴리스_수": len(live),
+                "주의": "릴리스가 2건 미만이라 간격을 낼 수 없다"}
+    gaps = []
+    for a, b in zip(live, live[1:]):
+        ta, tb = parse_ts(a["publishedAt"]), parse_ts(b["publishedAt"])
+        gaps.append((tb - ta).total_seconds() / 86400)
+    return {
+        "설명": "릴리스 간격 (일). CalVer 태그는 main 푸시 + CI 성공 시 자동 생성된다",
+        "릴리스_수": len(live),
+        "첫_릴리스": live[0]["tagName"],
+        "최근_릴리스": live[-1]["tagName"],
+        "간격_중앙값_일": round(statistics.median(gaps), 2),
+        "주의": "CD 게이트가 닫혀 있어 태그는 '릴리스했다'일 뿐 '배포됐다'가 아니다.",
+    }
+
+
 def metric_by_author(prs: list[dict]) -> dict:
     """개인별 분해. 기본 리포트에는 넣지 않는다 — --by-author 로만 본다."""
     c = collections.Counter(p["author"]["login"] for p in prs
@@ -247,18 +318,26 @@ def build_report(snap: dict) -> str:
         "| 지표 | 값 | 읽는 법 |",
         "|---|---:|---|",
     ]
+    def fmt(v, unit=""):
+        """표본이 모자라 계산이 안 된 칸은 숫자인 척하지 않는다."""
+        return "—" if v is None else f"{v}{unit}"
+
     rows = [
-        ("재작업률", f"{m['재작업']['재작업률']}%",
+        ("재작업률", fmt(m['재작업']['재작업률'], "%"),
          f"머지 후 {REWORK_WINDOW_DAYS}일 내 같은 파일을 fix/revert 가 다시 건드림. 낮을수록 좋다"),
-        ("CI 첫 시도 통과율", f"{m['CI_첫시도']['첫시도_통과율']}%",
+        ("CI 첫 시도 통과율", fmt(m['CI_첫시도']['첫시도_통과율'], "%"),
          "에이전트가 올린 첫 결과물이 그대로 서는 비율. 높을수록 좋다"),
-        ("브랜치당 CI 실행 (중앙값)", f"{m['CI_첫시도']['브랜치당_CI실행_중앙값']}회",
+        ("브랜치당 CI 실행 (중앙값)", fmt(m['CI_첫시도']['브랜치당_CI실행_중앙값'], "회"),
          "1에 가까울수록 좋다. 크면 CI 가 사람 검토를 대신 받아내고 있다"),
-        ("CI 전체 성공률", f"{m['CI_전체']['성공률']}%", "참고용. 재실행이 섞여 낙관적으로 나온다"),
-        ("머지까지 (중앙값)", f"{m['리드타임']['중앙값_시간']}h", "짧다고 좋은 게 아니다. 리뷰율과 같이 봐라"),
-        ("PR 크기 (중앙값)", f"{m['PR크기']['중앙값']}줄", "p90 과 최대를 같이 봐라. 큰 PR 은 검토가 불가능해진다"),
-        ("리뷰율", f"{m['리뷰']['리뷰율']}%", "GitHub 공식 리뷰만. 낮으면 검토 비용이 rework 로 미뤄진다"),
-        ("봇 PR 비율", f"{m['봇비중']['봇_비율']}%", "봇이 흐름의 얼마를 차지하는가"),
+        ("CI 전체 성공률", fmt(m['CI_전체']['성공률'], "%"), "참고용. 재실행이 섞여 낙관적으로 나온다"),
+        ("머지까지 (중앙값)", fmt(m['리드타임'].get('중앙값_시간'), "h"), "짧다고 좋은 게 아니다. 리뷰율과 같이 봐라"),
+        ("PR 크기 (중앙값)", fmt(m['PR크기'].get('중앙값'), "줄"), "p90 과 최대를 같이 봐라. 큰 PR 은 검토가 불가능해진다"),
+        ("리뷰율", fmt(m['리뷰']['리뷰율'], "%"), "GitHub 공식 리뷰만. 낮으면 검토 비용이 rework 로 미뤄진다"),
+        ("봇 PR 비율", fmt(m['봇비중']['봇_비율'], "%"), "봇이 흐름의 얼마를 차지하는가"),
+        ("릴리스 간격 (중앙값)", fmt(m['릴리스빈도'].get('간격_중앙값_일'), "일"),
+         "태그는 '릴리스했다'일 뿐 '배포됐다'가 아니다 — CD 게이트가 닫혀 있다"),
+        ("릴리스당 빠져나간 결함", fmt(m['빠져나간결함'].get('릴리스당_이슈')),
+         "볼트 07_이슈기록 기준. 0 은 '결함 없음'이 아니라 '기록 안 함'일 수 있다"),
     ]
     for name, val, how in rows:
         L.append(f"| {name} | {val} | {how} |")
@@ -299,12 +378,22 @@ def main() -> None:
     ap.add_argument("--by-author", action="store_true",
                     help="개인별 분해를 화면에만 출력한다 (파일로 저장하지 않는다)")
     ap.add_argument("--out", default=".", help="저장소 루트")
+    ap.add_argument("--vault", default=None,
+                    help="옵시디언 볼트 경로 (빠져나간 결함 집계용). "
+                         "생략하면 ../GoLe-obsidian 을 찾아본다")
     args = ap.parse_args()
+
+    vault = args.vault
+    if vault is None:
+        guess = os.path.join(os.path.dirname(os.path.abspath(args.out)), "GoLe-obsidian")
+        vault = guess if os.path.isdir(guess) else None
 
     print(f"수집 중: {args.repo}", file=sys.stderr)
     prs = fetch_prs(args.repo, args.pr_limit)
     runs = fetch_ci_runs(args.repo, args.run_limit)
-    print(f"  PR {len(prs)}건 · CI 실행 {len(runs)}건", file=sys.stderr)
+    releases = fetch_releases(args.repo)
+    print(f"  PR {len(prs)}건 · CI 실행 {len(runs)}건 · 릴리스 {len(releases)}건", file=sys.stderr)
+    print(f"  볼트: {vault or '못 찾음 (빠져나간 결함은 비워 둔다)'}", file=sys.stderr)
 
     today = dt.date.today().isoformat()
     snap = {
@@ -319,6 +408,8 @@ def main() -> None:
             "PR크기": metric_pr_size(prs),
             "리뷰": metric_review(prs),
             "봇비중": metric_bot_share(prs),
+            "릴리스빈도": metric_release_cadence(releases),
+            "빠져나간결함": metric_escaped_defects(vault, releases),
         },
     }
 
