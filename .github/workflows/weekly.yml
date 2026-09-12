@@ -33,6 +33,10 @@ jobs:
           token: ${{ secrets.METRICS_TOKEN }}
           path: .vault
 
+      # 집계 로직만 검증한다. 네트워크도 gh 도 필요 없다.
+      - name: 자체 검증
+        run: python3 collect.py --self-test
+
       - name: 스냅샷 수집
         env:
           GH_TOKEN: ${{ secrets.METRICS_TOKEN || secrets.GITHUB_TOKEN }}
