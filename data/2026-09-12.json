@@ -1,0 +1,375 @@
+{
+  "수집일": "2026-09-12",
+  "저장소": "GoLe-by-Colding/GoLe",
+  "표본": {
+    "PR": 80,
+    "CI실행": 300
+  },
+  "지표": {
+    "재작업": {
+      "설명": "머지 후 7일 내 같은 파일을 fix/revert 가 다시 건드린 PR 비율",
+      "대상_PR수": 78,
+      "재작업_PR수": 32,
+      "재작업률": 41.0,
+      "사례": [
+        {
+          "pr": 5,
+          "title": "feat: image upload via MinIO/S3 (media context + file upload UI)",
+          "followed_by": [
+            {
+              "pr": 6,
+              "title": "fix(backend): de-duplicate media public URL path",
+              "overlap": [
+                ".kiro/specs/image-upload/design.md",
+                "apps/api/src/main/java/com/gole/api/media/adapter/in/web/MediaController.java",
+                "apps/api/src/main/java/com/gole/api/media/application/service/MediaService.java",
+                "apps/api/src/test/java/com/gole/api/media/application/service/MediaServiceTest.java"
+              ]
+            }
+          ]
+        },
+        {
+          "pr": 9,
+          "title": "feat: social login (OAuth2 Google/Kakao/Naver)",
+          "followed_by": [
+            {
+              "pr": 12,
+              "title": "fix(frontend): always show social login buttons",
+              "overlap": [
+                "apps/web/src/features/social-login/ui/social-login-buttons.tsx"
+              ]
+            }
+          ]
+        },
+        {
+          "pr": 44,
+          "title": "UI 리뉴얼 + 상품 상태 등급 5단계와 등급별 시세 근거 노출",
+          "followed_by": [
+            {
+              "pr": 45,
+              "title": "fix: CD 배포 실패 복구 + 배포 워크플로 정리",
+              "overlap": [
+                "apps/api/src/main/resources/application.yml"
+              ]
+            },
+            {
+              "pr": 51,
+              "title": "fix(order): 결제 시도 전에도 \"결제를 기다리고 있어요\"가 뜨던 문제",
+              "overlap": [
+                "apps/web/src/views/order-detail/ui/order-detail-page.tsx"
+              ]
+            }
+          ]
+        },
+        {
+          "pr": 48,
+          "title": "feat: 결제수단 기록 — PR #46 재구성 (정산·결제 재시도는 main 설계 채택)",
+          "followed_by": [
+            {
+              "pr": 51,
+              "title": "fix(order): 결제 시도 전에도 \"결제를 기다리고 있어요\"가 뜨던 문제",
+              "overlap": [
+                "apps/web/src/views/order-detail/ui/order-detail-page.tsx"
+              ]
+            },
+            {
+              "pr": 53,
+              "title": "fix(payment): 포트원 결제수단 표기 불일치로 모든 실결제가 수동 검토로 떨어지던 문제",
+              "overlap": [
+                "apps/api/src/main/java/com/gole/api/order/adapter/out/payment/PortOnePaymentGatewayAdapter.java",
+                "apps/api/src/test/java/com/gole/api/order/adapter/out/payment/PortOnePaymentGatewayAdapterTest.java"
+              ]
+            }
+          ]
+        },
+        {
+          "pr": 60,
+          "title": "feat(web): 온보딩 위저드 — 닉네임·전화인증·관심태그·동의",
+          "followed_by": [
+            {
+              "pr": 78,
+              "title": "fix(web,mobile): 인증 미완료 계정의 복구 동선 열어줌",
+              "overlap": [
+                "apps/web/src/shared/lib/index.ts",
+                "apps/web/src/views/auth/ui/auth-page.tsx",
+                "apps/web/src/views/verify-email/ui/verify-email-page.tsx"
+              ]
+            },
+            {
+              "pr": 79,
+              "title": "fix(account,web): 프로필 닉네임 노출·미가입 소셜 이탈·OTP 평문 저장을 함께 고침",
+              "overlap": [
+                "apps/web/src/views/oauth-callback/ui/oauth-callback-page.tsx"
+              ]
+            }
+          ]
+        },
+        {
+          "pr": 59,
+          "title": "feat(account): 최초 로그인 온보딩 파이프라인 — 닉네임·전화인증·관심태그·동의",
+          "followed_by": [
+            {
+              "pr": 79,
+              "title": "fix(account,web): 프로필 닉네임 노출·미가입 소셜 이탈·OTP 평문 저장을 함께 고침",
+              "overlap": [
+                "apps/api/src/main/java/com/gole/api/account/adapter/in/web/AccountController.java",
+                "apps/api/src/main/java/com/gole/api/account/adapter/in/web/AccountResponses.java",
+                "apps/api/src/main/java/com/gole/api/account/adapter/out/verification/RedisPhoneVerificationStoreAdapter.java",
+                "apps/api/src/main/java/com/gole/api/account/application/port/in/GetCurrentSessionUseCase.java",
+                "apps/api/src/main/java/com/gole/api/account/application/port/out/PhoneVerificationStorePort.java"
+              ]
+            },
+            {
+              "pr": 114,
+              "title": "fix(mobile): react 를 Expo SDK 57 이 기대하는 19.2.3 으로 되돌림",
+              "overlap": [
+                "apps/api/src/main/java/com/gole/api/account/adapter/out/persistence/AccountDocument.java",
+                "apps/api/src/main/java/com/gole/api/account/adapter/out/persistence/AccountPersistenceAdapter.java",
+                "apps/api/src/main/java/com/gole/api/account/application/port/out/AccountRepositoryPort.java",
+                "apps/api/src/main/java/com/gole/api/listing/adapter/in/web/ListingController.java",
+                "apps/api/src/main/resources/application.yml"
+              ]
+            }
+          ]
+        },
+        {
+          "pr": 61,
+          "title": "수정: 온보딩 병합 이후 회귀난 E2E와 관리자 계정·전화인증 변수 문제를 고침",
+          "followed_by": [
+            {
+              "pr": 79,
+              "title": "fix(account,web): 프로필 닉네임 노출·미가입 소셜 이탈·OTP 평문 저장을 함께 고침",
+              "overlap": [
+                "apps/api/src/main/java/com/gole/api/account/application/service/OnboardingService.java",
+                "apps/api/src/main/resources/application.yml",
+                "apps/api/src/test/java/com/gole/api/account/application/service/OnboardingServiceTest.java",
+                "apps/web/tests-e2e/auth-return-to.spec.ts",
+                "apps/web/tests-e2e/profile.spec.ts"
+              ]
+            },
+            {
+              "pr": 114,
+              "title": "fix(mobile): react 를 Expo SDK 57 이 기대하는 19.2.3 으로 되돌림",
+              "overlap": [
+                "apps/api/src/main/resources/application.yml",
+                "apps/web/tests-e2e/create-listing.spec.ts"
+              ]
+            }
+          ]
+        },
+        {
+          "pr": 62,
+          "title": "기능: 프로덕션 출시 기반과 운영 흐름을 완성함",
+          "followed_by": [
+            {
+              "pr": 76,
+              "title": "fix(infra): SMTP 활성화를 막던 Stage 0 래치를 조건부로 전환하고 기동 결함을 고침",
+              "overlap": [
+                ".github/workflows/cd.yml",
+                "apps/api/src/main/java/com/gole/api/account/config/SmtpConnectionConfigurationGuard.java"
+              ]
+            },
+            {
+              "pr": 79,
+              "title": "fix(account,web): 프로필 닉네임 노출·미가입 소셜 이탈·OTP 평문 저장을 함께 고침",
+              "overlap": [
+                ".env.example",
+                "apps/api/src/main/java/com/gole/api/account/adapter/in/web/AccountController.java",
+                "apps/api/src/main/java/com/gole/api/account/adapter/out/verification/RedisPhoneVerificationStoreAdapter.java",
+                "apps/api/src/main/java/com/gole/api/account/application/port/out/PhoneVerificationStorePort.java",
+                "apps/api/src/main/java/com/gole/api/account/application/service/AccountService.java"
+              ]
+            },
+            {
+              "pr": 97,
+              "title": "fix(api): 백엔드 의존성 4종 상승 + protobuf 0.10.0 설정 충돌 해결 (#81 대체)",
+              "overlap": [
+                "apps/api/build.gradle.kts"
+              ]
+            },
+            {
+              "pr": 114,
+              "title": "fix(mobile): react 를 Expo SDK 57 이 기대하는 19.2.3 으로 되돌림",
+              "overlap": [
+                ".github/workflows/ci.yml",
+                ".gitignore",
+                ".kiro/steering/dev-conventions.md",
+                "apps/api/src/main/java/com/gole/api/account/adapter/out/persistence/AccountDocument.java",
+                "apps/api/src/main/java/com/gole/api/account/adapter/out/persistence/AccountPersistenceAdapter.java"
+              ]
+            }
+          ]
+        },
+        {
+          "pr": 65,
+          "title": "인프라: GCP 단일 운영 배포 안전장치를 완성함",
+          "followed_by": [
+            {
+              "pr": 73,
+              "title": "fix(infra): 백업 실패로 인한 운영 서버 종료 수정함",
+              "overlap": [
+                "infra/gcp/scripts/backup-data.sh",
+                "infra/gcp/tests/backup-data-runtime.test.sh"
+              ]
+            },
+            {
+              "pr": 74,
+              "title": "fix(infra): 스냅샷 기본값과 실행기 링크 검증 보완함",
+              "overlap": [
+                "infra/gcp/scripts/register-github-runner.sh",
+                "infra/gcp/tests/runner-migration-runtime.test.sh"
+              ]
+            },
+            {
+              "pr": 76,
+              "title": "fix(infra): SMTP 활성화를 막던 Stage 0 래치를 조건부로 전환하고 기동 결함을 고침",
+              "overlap": [
+                ".github/workflows/cd.yml",
+                "infra/gcp/docker-compose.yml",
+                "infra/gcp/scripts/validate-production-compose.py",
+                "infra/gcp/tests/secret-sync-runtime.test.sh",
+                "infra/gcp/tests/test_production_compose_policy.py"
+              ]
+            },
+            {
+              "pr": 98,
+              "title": "fix(infra): MinIO 이미지를 quay.io 로 옮겨 CI 와 배포를 되살림",
+              "overlap": [
+                "infra/gcp/docker-compose.yml",
+                "infra/gcp/scripts/backup-data.sh",
+                "infra/gcp/scripts/validate-production-compose.py"
+              ]
+            },
+            {
+              "pr": 114,
+              "title": "fix(mobile): react 를 Expo SDK 57 이 기대하는 19.2.3 으로 되돌림",
+              "overlap": [
+                ".github/workflows/ci.yml"
+              ]
+            }
+          ]
+        },
+        {
+          "pr": 66,
+          "title": "기능: React Native 앱과 웹·앱 공유 코어를 추가함",
+          "followed_by": [
+            {
+              "pr": 72,
+              "title": "fix(mobile): 메일 준비 상태에 맞춰 가입 인증 진입 제한함",
+              "overlap": [
+                "apps/mobile/src/features/verify-email/ui/verify-email-form.tsx",
+                "apps/mobile/src/views/auth/ui/sign-up-view.tsx",
+                "apps/mobile/src/views/auth/ui/verify-email-view.tsx"
+              ]
+            },
+            {
+              "pr": 78,
+              "title": "fix(web,mobile): 인증 미완료 계정의 복구 동선 열어줌",
+              "overlap": [
+                "apps/mobile/src/features/verify-email/ui/verify-email-form.tsx",
+                "apps/mobile/src/views/auth/ui/sign-in-view.tsx",
+                "apps/mobile/src/views/auth/ui/sign-up-view.tsx",
+                "apps/mobile/src/views/auth/ui/verify-email-view.tsx"
+              ]
+            },
+            {
+              "pr": 79,
+              "title": "fix(account,web): 프로필 닉네임 노출·미가입 소셜 이탈·OTP 평문 저장을 함께 고침",
+              "overlap": [
+                ".env.example",
+                "apps/api/src/main/resources/application.yml"
+              ]
+            },
+            {
+              "pr": 97,
+              "title": "fix(api): 백엔드 의존성 4종 상승 + protobuf 0.10.0 설정 충돌 해결 (#81 대체)",
+              "overlap": [
+                "apps/api/build.gradle.kts"
+              ]
+            },
+            {
+              "pr": 114,
+              "title": "fix(mobile): react 를 Expo SDK 57 이 기대하는 19.2.3 으로 되돌림",
+              "overlap": [
+                ".github/workflows/ci.yml",
+                ".gitignore",
+                ".kiro/steering/dev-conventions.md",
+                "apps/api/src/main/resources/application.yml",
+                "apps/mobile/package.json"
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    "CI_첫시도": {
+      "설명": "PR 브랜치의 첫 CI 실행이 바로 성공한 비율 (main·dev 직접 푸시 제외)",
+      "대상_브랜치수": 50,
+      "첫시도_성공": 41,
+      "첫시도_통과율": 82.0,
+      "브랜치당_CI실행_중앙값": 2.0,
+      "브랜치당_CI실행_최대": 7
+    },
+    "CI_전체": {
+      "설명": "ci.yml 전체 실행 결과 분포 (최근 N건)",
+      "분포": {
+        "success": 210,
+        "cancelled": 29,
+        "failure": 61
+      },
+      "성공률": 77.5
+    },
+    "리드타임": {
+      "설명": "PR 열림 → 머지까지 걸린 시간 (사람 PR 만)",
+      "표본": 78,
+      "중앙값_시간": 0.2,
+      "p90_시간": 17.4,
+      "최대_시간": 66.0
+    },
+    "PR크기": {
+      "설명": "PR 변경 라인 수 (추가+삭제, 사람 PR 만)",
+      "표본": 78,
+      "중앙값": 243,
+      "p90": 3523,
+      "최대": 43142,
+      "1000줄_초과_PR": [
+        120,
+        114,
+        113,
+        101,
+        91,
+        90,
+        88,
+        87,
+        80,
+        69,
+        68,
+        66,
+        65,
+        64,
+        62,
+        60,
+        59,
+        55,
+        54,
+        48,
+        44,
+        2
+      ],
+      "주의": "큰 PR 은 검토가 사실상 불가능해진다. 에이전트는 큰 PR 을 쉽게 만든다."
+    },
+    "리뷰": {
+      "설명": "GitHub 공식 리뷰가 달린 PR 비율 (사람 PR 만)",
+      "대상_PR수": 78,
+      "리뷰_있음": 0,
+      "리뷰율": 0.0,
+      "주의": "오르카·대화로 검토한 것은 잡히지 않는다. 검토 여부가 아니라 기록 여부다."
+    },
+    "봇비중": {
+      "설명": "전체 머지 PR 중 봇(dependabot) 비율",
+      "전체": 80,
+      "봇": 2,
+      "봇_비율": 2.5
+    }
+  }
+}

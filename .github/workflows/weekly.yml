@@ -1,0 +1,57 @@
+name: 주간 스냅샷
+
+on:
+  schedule:
+    # 매주 월요일 09:00 KST (= 일요일 00:00 UTC)
+    - cron: "0 0 * * 1"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  snapshot:
+    name: 전달 지표 수집
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+
+      # GoLe 저장소의 Actions 이력을 읽어야 한다. GITHUB_TOKEN 은 이 저장소에만
+      # 유효하므로 repo 스코프 PAT 이 필요하다. 없으면 이 잡은 조용히 건너뛴다.
+      - name: 토큰 확인
+        id: guard
+        env:
+          T: ${{ secrets.METRICS_TOKEN }}
+        run: |
+          if [ -z "$T" ]; then
+            echo "::warning title=METRICS_TOKEN 없음::repo 스코프 PAT 이 없어 수집을 건너뛴다"
+            echo "ok=false" >> "$GITHUB_OUTPUT"
+          else
+            echo "ok=true" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: 스냅샷 수집
+        if: steps.guard.outputs.ok == 'true'
+        env:
+          GH_TOKEN: ${{ secrets.METRICS_TOKEN }}
+        run: python3 collect.py
+
+      - name: 커밋
+        if: steps.guard.outputs.ok == 'true'
+        run: |
+          set -euo pipefail
+          git config user.name  "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          if git diff --quiet -- reports data && git diff --cached --quiet -- reports data; then
+            echo "변경 없음 — 커밋하지 않는다"
+            exit 0
+          fi
+          day="$(date -u +%Y-%m-%d)"
+          {
+            printf '%s\n\n' "chore(metrics): ${day} 스냅샷을 찍음"
+            printf '%s\n' "- collect.py 로 PR·CI 지표를 수집해 reports 와 data 에 넣음"
+            printf '%s\n' "- 검증: 수집 스크립트가 0으로 종료했고 산출 파일이 변경됨"
+          } > "${RUNNER_TEMP}/msg"
+          git add reports data
+          git commit -F "${RUNNER_TEMP}/msg"
+          git push
